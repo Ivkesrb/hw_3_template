@@ -1,0 +1,16 @@
+services:
+  app:
+    build: .
+    environment:
+      STORAGE: sqlite
+      GREETING: "${TEKST_PRIVETA:-Hello, Docker!}"
+    ports:
+      - target: 8000
+        published: "${PORT_NA_MAKE:-8080}"
+        host_ip: "127.0.0.1"
+    volumes:
+      - type: volume
+        source: counter_data
+        target: /data
+volumes:
+  counter_data:

@@ -1,0 +1,47 @@
+services:
+  app:
+    build: .
+    ports:
+      - target: 8000
+        published: "${PORT_NA_MAKE:-8080}"
+        host_ip: "127.0.0.1"
+    environment:
+      GREETING: "${TEKST_PRIVETA:-Hello, Docker!}"
+      STORAGE: redis
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - "-c"
+        - |
+          from urllib.request import urlopen
+
+          adres = "http://127.0.0.1:8000/readyz"
+          with urlopen(adres, timeout=2) as otvet:
+              otvet.read()
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7.4-alpine
+    command:
+      - redis-server
+      - "--appendonly"
+      - "yes"
+    volumes:
+      - type: volume
+        source: redis_data
+        target: /data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep -qx PONG"]
+      interval: 3s
+      timeout: 2s
+      retries: 10
+
+volumes:
+  redis_data:
